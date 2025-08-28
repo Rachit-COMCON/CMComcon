@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calibration Report Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            padding: 2rem;
+        }
+        .app-container {
+            max-width: 900px;
+            margin: auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .page-container {
+            width: 21cm;
+            min-height: 29.7cm;
+            background-color: white;
+            padding: 2rem 3rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 0.5rem;
+            margin: 1.5rem auto;
+            position: relative;
+            line-height: normal;
+        }
+        .section {
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+        .table-raw-data, .table-traceability {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-raw-data th, .table-raw-data td, .table-traceability th, .table-traceability td {
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem;
+            text-align: left;
+        }
+        .table-raw-data th, .table-raw-data td {
+            font-size: 0.875rem;
+        }
+        .table-raw-data th, .table-traceability th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+        .table-traceability td {
+            font-size: 0.875rem;
+        }
+        .graph-wrapper {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            padding: 0.5rem;
+        }
+        .graph-container {
+            width: 100%;
+            height: 100%;
+            margin-top: 0.5rem;
+        }
+        .graph-container svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+        .print-btn {
+            display: none;
+        }
+        @media print {
+            body {
+                background-color: white;
+            }
+            .app-container, .print-btn {
+                display: none;
+            }
+            .report-container {
+                display: block !important;
+                box-shadow: none;
+            }
+            .page-container {
+                margin: 0;
+                box-shadow: none;
+            }
+        }
+        /* Footer general styling */
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end; /* Align content to the bottom */
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0; /* Separator line */
+            font-size: 0.75rem; /* Default footer text size */
+            color: #555;
+        }
+        .footer-left-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: flex-start; /* Align contents to the left */
+        }
+        .footer-mic-details {
+            margin-bottom: 10px; /* Space between mic details and GRAS logo */
+            line-height: 5;
+        }
+        .footer-mic-details p {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #333;
+        }
+        .gras-logo-wrapper {
+            display: flex;
+            align-items: center;
+            height: 40px; /* Increased height for GRAS logo */
+            justify-content: flex-start;
+        }
+        .gras-logo-bar {
+            width: 3px;
+            height: 100%;
+            background-color: #1a73e8;
+            margin-right: 8px; /* Increased margin for better separation */
+        }
+        .gras-logo-wrapper img {
+            height: 100%;
+            width: auto;
+        }
+        .footer-right-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end; /* Align contents to the right */
+            text-align: right;
+        }
+        .intertek-logo {
+            width: 70px; /* Increased width for Intertek logo */
+            height: auto;
+            margin-bottom: 5px;
+        }
+        .intertek-certification {
+            font-size: 0.75rem; /* Adjusted size */
+            font-weight: 500;
+            margin-bottom: 10px; /* Space below cert number */
+        }
+        .footer-contact-info {
+            font-size: 0.75rem;
+            line-height: 1.3;
+            color: #555;
+        }
+        .footer-contact-info a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        .footer-contact-info a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="app-container">
+        <h1 class="text-2xl font-bold mb-4 text-center">Calibration Report Generator</h1>
+        
+        <form id="reportForm" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="micName" class="block text-sm font-medium text-gray-700">Microphone Full Name</label>
+                    <input type="text" id="micName" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                </div>
+                <div>
+                    <label for="serialNo" class="block text-sm font-medium text-gray-700">Serial Number</label>
+                    <input type="text" id="serialNo" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                </div>
+                <div>
+                    <label for="operator" class="block text-sm font-medium text-gray-700">Operator Name</label>
+                    <input type="text" id="operator" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                </div>
+                <div>
+                    <label for="calDate" class="block text-sm font-medium text-gray-700">Calibration Date</label>
+                    <input type="date" id="calDate" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 pt-4">
+                <h2 class="text-lg font-semibold mb-3">Reference Conditions</h2>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label for="temperature" class="block text-sm font-medium text-gray-700">Temperature (&deg;C)</label>
+                        <input type="number" step="0.1" id="temperature" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" value="23.0">
+                    </div>
+                    <div>
+                        <label for="humidity" class="block text-sm font-medium text-gray-700">Relative Humidity (%)</label>
+                        <input type="number" step="0.1" id="humidity" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" value="50">
+                    </div>
+                    <div>
+                        <label for="pressure" class="block text-sm font-medium text-gray-700">Barometric Pressure (hPa)</label>
+                        <input type="number" step="0.1" id="pressure" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" value="1013.25">
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 pt-4">
+                <h2 class="text-lg font-semibold mb-3">Open Circuit Sensitivity</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="ocSensitivity" class="block text-sm font-medium text-gray-700">Measured Level (mV/Pa)</label>
+                        <input type="number" step="0.01" id="ocSensitivity" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required value="0.39">
+                    </div>
+                    <div>
+                        <label for="uncertainty" class="block text-sm font-medium text-gray-700">Uncertainty (dB)</label>
+                        <input type="number" step="0.01" id="uncertainty" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required value="0.09">
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 pt-4">
+                <h2 class="text-lg font-semibold mb-2">Frequency Response Data</h2>
+                <p class="text-sm text-gray-500 mb-2">Enter your frequency response data as comma-separated pairs (e.g., 250,0.00, ...) or with each pair on a new line (e.g., 250&#9;0.00) with a tab character between them.</p>
+                <textarea id="freqResponseData" rows="4" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="e.g., 250&#9;0.00&#10;500&#9;0.01&#10;1000&#9;0.00"></textarea>
+            </div>
+            
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md transition-colors">
+                Generate Report
+            </button>
+        </form>
+    </div>
+
+    <div id="reportContainer" class="report-container hidden">
+
+        <div class="page-container flex flex-col justify-between">
+            <div>
+                <div class="flex items-center mb-6">
+                    <div class="w-1 h-12 bg-blue-600 mr-4"></div>
+                    <div>
+                        <h1 class="text-xl font-bold">Calibration Chart</h1>
+                        <p id="reportMicName1" class="text-lg font-medium">GRAS 40BH 1/4'' Ext. Polarized Pressure Microphone, High Pressure</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm mb-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="font-semibold">Serial No:</span> <span id="reportSerialNo"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="font-semibold">Operator:</span> <span id="reportOperator"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="font-semibold">Calibration Date:</span> <span id="reportCalDate"></span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="font-semibold mb-2">Open Circuit Sensitivity</p>
+                        <p class="text-xs leading-snug">The calibration is performed by comparison with a Reference Microphone Cartridge GRAS 40AG and is traceable to the Danish National Metrology Institute. DFM A/S. The stated sensitivity for the microphone cartridge is the open circuit sensitivity. When used with a typical preamplifier, like the GRAS 26AH, the sensitivity will be 0.2 dB lower.</p>
+                        <table class="table-raw-data mt-4">
+                            <thead>
+                                <tr>
+                                    <th>Test Freq. (Hz)</th>
+                                    <th>Measured Level (mV/Pa)</th>
+                                    <th>Measured Level (dB re 1 V/Pa)</th>
+                                    <th>Uncertainty (dB)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>250</td>
+                                    <td id="reportOcSensitivity"></td>
+                                    <td id="reportOcDb"></td>
+                                    <td id="reportUncertainty"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm mb-4">
+                    <div class="space-y-2">
+                        <h3 class="font-semibold">Reference conditions:</h3>
+                        <div class="flex justify-between">
+                            <p>Temperature:</p>
+                            <span><span id="reportTemperature"></span>&nbsp;&deg;C</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <p>Relative humidity:</p>
+                            <span><span id="reportHumidity"></span>&nbsp;%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <p>Barometric pressure:</p>
+                            <span><span id="reportPressure"></span>&nbsp;hPa</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold">Frequency response</h3>
+                        <p class="text-xs leading-snug">The table shows the frequency response for the microphone. The frequency response is recorded by electrostatic actuator and is measured relative to the response at 250 Hz.</p>
+                    </div>
+                </div>
+
+                <div class="graph-wrapper">
+                    <div class="graph-container">
+                        <svg id="freqGraph" viewBox="0 0 1000 250" preserveAspectRatio="none">
+                            <rect x="0" y="0" width="1000" height="250" fill="#f8f8f8"></rect>
+                            
+                            <text x="50" y="-10" font-size="20" font-weight="500" text-anchor="start">Frequency Response re. 250</text>
+                            <text x="-40" y="125" font-size="15" text-anchor="middle" transform="rotate(-90 -40 125)">[dB]</text>
+                            
+                            <g id="yAxisGrid"></g>
+                            <g id="xAxisGrid"></g>
+                            <polyline id="graphLine" fill="none" stroke="blue" stroke-width="2"></polyline>
+                        </svg>
+                    </div>
+                    <div class="text-sm text-center mt-4">Frequency (Hz)</div>
+                </div>
+            </div>
+            
+            <div class="footer-content">
+                <div class="footer-left-section">
+                    <div class="footer-mic-details">
+                        <p class="font-medium text-black" id="footerMicName">GRAS 40BH 1/4" Ext. Polarized Pressure Microphone, High Pressure</p>
+                        <p class="font-medium text-black">Serial No. <span id="footerSerialNo">648498</span></p>
+                    </div>
+                    <div class="gras-logo-wrapper">
+                        <div class="gras-logo-bar"></div>
+                        <img src="GRAS LOGO.png" alt="GRAS Sound & Vibration Logo">
+                    </div>
+                </div>
+                
+                <div class="footer-right-section">
+                    <img src="intertek-certification-seeklogo.png" alt="Intertek Certification Logo" class="intertek-logo">
+                    <p class="intertek-certification">Certificate number 48982</p>
+                    <p class="footer-contact-info">GRAS Sound & Vibration A/S</p>
+                    <p class="footer-contact-info">Skovlytoften 33, 2840 Holte, Denmark</p>
+                    <p class="footer-contact-info">Email: <a href="mailto:support@gras.dk">support@gras.dk</a> - <a href="https://www.gras.dk">gras.dk</a></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-container">
+            <div class="flex items-center mb-6">
+                <div class="w-1 h-12 bg-blue-600 mr-4"></div>
+                <div>
+                    <h1 class="text-xl font-bold">Calibration Chart</h1>
+                    <p id="reportMicName2" class="text-lg font-medium">GRAS 40BH 1/4'' Ext. Polarized Pressure Microphone, High Pressure</p>
+                </div>
+            </div>
+
+            <div class="flex text-sm">
+                <div class="w-1/2 pr-8">
+                    <p class="leading-snug">The GRAS 40BH Pressure Microphone complies with the requirements in IEC Standard 61094-4. The pressure microphone is designed to measure the sound pressure at the diaphragm. It has a flat pressure frequency response.</p>
+                </div>
+                <div class="w-1/2 pl-8">
+                    <p class="leading-snug">in its entire frequency range. At higher frequencies the presence of the microphone itself in the sound field will change the sound pressure. In general the sound pressure around the microphone cartridge will increase due to reflections and diffraction. The pressure microphone is designed so that it measures the pressure on the diaphragm, including the influence of the microphone on the sound field.</p>
+                </div>
+            </div>
+
+            <div class="w-full h-px bg-gray-300 my-6"></div>
+
+            <div class="mb-6">
+                <h2 class="text-md font-semibold mb-2">Frequency Response Raw Data</h2>
+                <table class="table-raw-data">
+                    <thead>
+                        <tr>
+                            <th>Frequency (Hz)</th>
+                            <th>Pressure (dB)</th>
+                            <th>Frequency (Hz)</th>
+                            <th>Pressure (dB)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="freqTableBody">
+                        </tbody>
+                </table>
+            </div>
+
+            <div>
+                <h2 class="text-md font-semibold mb-2">Traceability Table</h2>
+                <table class="table-traceability">
+                    <thead>
+                        <tr>
+                            <th>Instrument</th>
+                            <th>Model</th>
+                            <th>Serial Number</th>
+                            <th>Traceable To</th>
+                            <th>Calibration Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>NI data-acquisition signal analyzer</td>
+                            <td>PCI-4461</td>
+                            <td>33611572</td>
+                            <td>NIST</td>
+                            <td>29-05-2025</td>
+                        </tr>
+                        <tr>
+                            <td>Pistonphone</td>
+                            <td>42AP</td>
+                            <td>433872</td>
+                            <td>DFM</td>
+                            <td>24-06-2025</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('reportForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Get form values
+            const micName = document.getElementById('micName').value;
+            const serialNo = document.getElementById('serialNo').value;
+            const operator = document.getElementById('operator').value;
+            const calDate = document.getElementById('calDate').value;
+            const temperature = document.getElementById('temperature').value;
+            const humidity = document.getElementById('humidity').value;
+            const pressure = document.getElementById('pressure').value;
+            const ocSensitivity = parseFloat(document.getElementById('ocSensitivity').value);
+            const uncertainty = parseFloat(document.getElementById('uncertainty').value);
+            const freqResponseData = document.getElementById('freqResponseData').value;
+            
+            // Populate report fields
+            document.getElementById('reportMicName1').innerText = micName;
+            document.getElementById('reportMicName2').innerText = micName;
+            document.getElementById('reportSerialNo').innerText = serialNo;
+            document.getElementById('footerMicName').innerText = micName; // Use full mic name here
+            document.getElementById('footerSerialNo').innerText = serialNo;
+            document.getElementById('reportOperator').innerText = operator;
+            document.getElementById('reportCalDate').innerText = calDate;
+            document.getElementById('reportTemperature').innerText = temperature;
+            document.getElementById('reportHumidity').innerText = humidity;
+            document.getElementById('reportPressure').innerText = pressure;
+            document.getElementById('reportOcSensitivity').innerText = ocSensitivity.toFixed(2);
+            document.getElementById('reportUncertainty').innerText = `\u00B1${uncertainty.toFixed(2)}`;
+
+            // Calculate dB value for Open Circuit Sensitivity
+            const ocDb = 20 * Math.log10(ocSensitivity / 1);
+            document.getElementById('reportOcDb').innerText = ocDb.toFixed(2);
+
+            // --- Corrected Parsing Logic ---
+            const data = [];
+            const lines = freqResponseData.trim().split('\n');
+            
+            for (const line of lines) {
+                // Check for tab, space, or comma separation
+                const parts = line.split(/[\t, ]+/).filter(p => p.length > 0);
+                if (parts.length >= 2) {
+                    const freq = parseFloat(parts[0]);
+                    const db = parseFloat(parts[1]);
+                    if (!isNaN(freq) && !isNaN(db)) {
+                        data.push({ freq, db });
+                    }
+                }
+            }
+
+            // Populate table with data
+            const freqTableBody = document.getElementById('freqTableBody');
+            freqTableBody.innerHTML = '';
+            const halfLength = Math.ceil(data.length / 2);
+            for (let i = 0; i < halfLength; i++) {
+                const row = document.createElement('tr');
+                const rowData = data[i];
+                const rowHtml = `
+                    <td>${rowData.freq}</td>
+                    <td>${rowData.db.toFixed(2)}</td>
+                    ${i + halfLength < data.length ? `
+                    <td>${data[i + halfLength].freq}</td>
+                    <td>${data[i + halfLength].db.toFixed(2)}</td>` : `
+                    <td></td>
+                    <td></td>`}
+                `;
+                row.innerHTML = rowHtml;
+                freqTableBody.appendChild(row);
+            }
+
+            // --- Corrected Graphing Logic ---
+            const graphLine = document.getElementById('graphLine');
+            const yAxisGrid = document.getElementById('yAxisGrid');
+            const xAxisGrid = document.getElementById('xAxisGrid');
+
+            yAxisGrid.innerHTML = '';
+            xAxisGrid.innerHTML = '';
+            
+            if (data.length > 0) {
+                const graphWidth = 1000;
+                const graphHeight = 250;
+                
+                // Determine min/max values for scaling
+                const freqs = data.map(p => p.freq);
+                const dbs = data.map(p => p.db);
+                const minFreq = Math.min(...freqs);
+                const maxFreq = Math.max(...freqs);
+                const minDb = Math.min(...dbs);
+                const maxDb = Math.ceil(Math.max(...dbs)); // Ensure maxDb is an integer for grid
+
+                // Add buffer to Y-axis for better visualization and round to nearest integer
+                const yMin = Math.floor(minDb) - 1;
+                const yMax = Math.ceil(maxDb) + 1;
+                
+                // Generate points for the graph line using log scale for X-axis
+                const points = data.map(p => {
+                    const x = (Math.log10(p.freq) - Math.log10(minFreq)) / (Math.log10(maxFreq) - Math.log10(minFreq)) * graphWidth;
+                    const y = graphHeight - ((p.db - yMin) / (yMax - yMin)) * graphHeight;
+                    return `${x},${y}`;
+                }).join(' ');
+
+                graphLine.setAttribute('points', points);
+
+                // Dynamically add Y-axis grid lines and labels
+                for (let dbValue = yMin; dbValue <= yMax; dbValue++) {
+                    const yPos = graphHeight - ((dbValue - yMin) / (yMax - yMin)) * graphHeight;
+                    
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', 0);
+                    line.setAttribute('y1', yPos);
+                    line.setAttribute('x2', graphWidth);
+                    line.setAttribute('y2', yPos);
+                    line.setAttribute('stroke', '#ccc');
+                    line.setAttribute('stroke-width', '1');
+                    yAxisGrid.appendChild(line);
+
+                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.setAttribute('x', -10);
+                    label.setAttribute('y', yPos);
+                    label.setAttribute('fill', '#333');
+                    label.setAttribute('font-size', '15');
+                    label.setAttribute('dominant-baseline', 'middle');
+                    label.setAttribute('text-anchor', 'end');
+                    label.textContent = dbValue;
+                    yAxisGrid.appendChild(label);
+                }
+
+                // Dynamically add X-axis grid lines and labels on a log scale
+                const logStart = Math.log10(minFreq);
+                const logEnd = Math.log10(maxFreq);
+                
+                // Iterate through decades
+                for (let power = Math.floor(logStart); power <= Math.ceil(logEnd); power++) {
+                    // Major grid lines (10^N)
+                    const majorFreq = Math.pow(10, power);
+                    if (majorFreq >= minFreq && majorFreq <= maxFreq) {
+                        const xPos = (Math.log10(majorFreq) - logStart) / (logEnd - logStart) * graphWidth;
+                        
+                        const majorLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        majorLine.setAttribute('x1', xPos);
+                        majorLine.setAttribute('y1', 0);
+                        majorLine.setAttribute('x2', xPos);
+                        majorLine.setAttribute('y2', graphHeight);
+                        majorLine.setAttribute('stroke', '#ccc');
+                        majorLine.setAttribute('stroke-width', '1'); // Thicker for major lines
+                        xAxisGrid.appendChild(majorLine);
+
+                        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        label.setAttribute('x', xPos);
+                        label.setAttribute('y', graphHeight + 20);
+                        label.setAttribute('fill', '#333');
+                        label.setAttribute('font-size', '15');
+                        label.setAttribute('text-anchor', 'middle');
+                        label.textContent = majorFreq >= 1000 ? `${majorFreq / 1000}k` : majorFreq;
+                        xAxisGrid.appendChild(label);
+                    }
+
+                    // Minor grid lines (2*10^N, 5*10^N) within each decade
+                    for (let multiplier of [2, 5]) {
+                        const minorFreq = multiplier * Math.pow(10, power);
+                        if (minorFreq > minFreq && minorFreq < maxFreq) { // Ensure it's within the actual data range
+                            const xPos = (Math.log10(minorFreq) - logStart) / (logEnd - logStart) * graphWidth;
+                            
+                            const minorLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            minorLine.setAttribute('x1', xPos);
+                            minorLine.setAttribute('y1', 0);
+                            minorLine.setAttribute('x2', xPos);
+                            minorLine.setAttribute('y2', graphHeight);
+                            minorLine.setAttribute('stroke', '#e0e0e0'); // Lighter for minor lines
+                            minorLine.setAttribute('stroke-width', '0.5');
+                            xAxisGrid.appendChild(minorLine);
+                        }
+                    }
+                }
+            }
+
+            // Show the report
+            document.getElementById('reportContainer').classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
