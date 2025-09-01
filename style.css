@@ -1,0 +1,223 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f4f8;
+    padding: 2rem;
+}
+
+.app-container {
+    max-width: 900px;
+    margin: auto;
+    background-color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.page-container {
+    width: 21cm;
+    min-height: 29.7cm;
+    background-color: white;
+    padding: 1rem 3rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    margin: 1.5rem auto;
+    position: relative;
+    line-height: normal;
+    font-size: 0.60rem; /* Updated font size to 0.60rem */
+}
+
+.section {
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.table-raw-data, .table-traceability {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-raw-data th, .table-raw-data td, .table-traceability th, .table-traceability td {
+    border: 1px solid #cbd5e1;
+    padding: 0.2rem 0.3rem;
+    text-align: left;
+    font-size: 0.7rem;
+}
+
+.table-raw-data th, .table-traceability th {
+    background-color: #f8fafc;
+    font-weight: 600;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+}
+
+.table-traceability td {
+    font-size: 0.7rem;
+}
+
+/* Specific styling for the new raw data table on page 2 */
+.table-raw-data-page2 {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-raw-data-page2 th, .table-raw-data-page2 td {
+    border: 1px solid #cbd5e1;
+    padding: 0;
+    text-align: middle;
+    font-size: 0.55rem;
+}
+
+.table-raw-data-page2 th {
+    background-color: #f8fafc;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.5rem;
+}
+
+/* Adjusted h2 heading size for better page fit */
+h2 {
+    font-size: 0.85rem;
+}
+
+.graph-wrapper {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    padding: 0.5rem;
+}
+
+.graph-container {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    margin-top: 0.5rem;
+}
+
+.graph-container svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+/* New print button styling */
+.print-btn {
+    display: none;
+    margin-top: 1rem;
+    width: 21cm;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media print {
+    @page {
+        size: A4;
+        margin: 0;
+    }
+    body {
+        background-color: white;
+        -webkit-print-color-adjust: exact;
+    }
+    .app-container, .print-btn, form {
+        display: none;
+    }
+    .report-container {
+        display: block !important;
+        box-shadow: none;
+    }
+    .page-container {
+        margin: 0 auto;
+        box-shadow: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding-bottom: 0.5cm;
+    }
+    .page-container:nth-of-type(1) {
+        page-break-after: always;
+    }
+}
+
+/* Footer general styling */
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.65rem;
+    color: #555;
+}
+
+.footer-left-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+}
+
+.mic-details-footer {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+.mic-details-footer p {
+    font-weight: 500;
+    color: #333;
+    font-size: 0.7rem;
+    line-height: 1.3;
+}
+
+.gras-logo-wrapper {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    justify-content: flex-start;
+}
+
+.gras-logo-bar {
+    width: 3px;
+    height: 100%;
+    background-color: #1a73e8;
+    margin-right: 8px;
+}
+
+.gras-logo-wrapper img {
+    height: 100%;
+    width: auto;
+}
+
+.footer-right-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+}
+
+.intertek-logo {
+    width: 70px;
+    height: auto;
+    margin-bottom: 5px;
+}
+
+.intertek-certification {
+    font-size: 0.65rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.footer-contact-info {
+    font-size: 0.65rem;
+    line-height: 1.3;
+    color: #555;
+}
+
+.footer-contact-info a {
+    color: #1a73e8;
+    text-decoration: none;
+}
+
+.footer-contact-info a:hover {
+    text-decoration: underline;
+}
